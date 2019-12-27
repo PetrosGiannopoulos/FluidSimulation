@@ -1,0 +1,67 @@
+﻿  pch.cpp
+  glad.c
+  STBImage.cpp
+  FluidSimulation.cpp
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\triangle.h(64): warning C4244: 'argument': conversion from 'double' to 'const float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(83): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(91): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(106): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(109): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(149): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(160): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(166): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(167): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(186): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(216): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(217): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(233): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(234): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(251): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(252): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(274): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\models.h(307): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\particle.h(165): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\particle.h(191): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\clock.h(12): warning C4305: '=': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(26): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(30): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(34): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(37): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(45): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(63): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(82): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(102): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(103): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(178): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(236): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(246): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(255): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(268): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(277): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(288): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(302): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(314): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(324): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(338): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(362): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(376): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(388): warning C4244: 'argument': conversion from 'double' to 'const float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(408): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(431): warning C4305: 'argument': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(451): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(495): warning C4305: 'argument': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(531): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(540): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\grid.h(566): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\graphics.h(401): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\graphics.h(402): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\graphics.h(406): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\graphics.h(407): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\graphics.h(409): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\graphics.h(410): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\graphics.h(419): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\examina\postcourses\thesis\fluidsimulation\fluidsimulation\graphics.h(427): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  Generating Code...
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  FluidSimulation.vcxproj -> D:\Χρήσιμα Έγγραφα\Examina\PostCourses\Thesis\FluidSimulation\x64\Debug\FluidSimulation.exe
+  FluidSimulation.vcxproj -> D:\Χρήσιμα Έγγραφα\Examina\PostCourses\Thesis\FluidSimulation\x64\Debug\FluidSimulation.pdb (Full PDB)
