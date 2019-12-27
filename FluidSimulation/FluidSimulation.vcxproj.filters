@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Particle.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Grid.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vectors.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Clock.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Models.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Triangle.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MarchingCubes.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Triangulator.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SphGrid.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Noise.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstVars.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CollisionObject.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CShader.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FluidSimulation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\glad\src\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="STBImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vertexShader.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="fragmentShader.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="lampShader.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="lampShader.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="shadow_mapping.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="shadow_mapping.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="shadow_mapping.gs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="MarchingCubeCL.cl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="kernel.cl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="skybox.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="skybox.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="MetaballField.cl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="skyboxrefl.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="gBuffer.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="gBuffer.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="screenShader.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="screenShader.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="computeShader.glslcs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="ssao.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="ssao.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="ssaoBlur.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="ssaoBlur.vs">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

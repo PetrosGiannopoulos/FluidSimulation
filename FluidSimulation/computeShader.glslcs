@@ -1,0 +1,781 @@
+#version 430 core
+
+layout(binding = 0, rgba32f) uniform image2D framebuffer;
+
+uniform vec3 eye;
+uniform vec3 ray00;
+uniform vec3 ray01;
+uniform vec3 ray10;
+uniform vec3 ray11;
+
+uniform samplerCube skybox;
+uniform sampler2D diffuseTexture;
+uniform sampler2D ssao;
+uniform sampler2D shadowMap;
+
+uniform vec4 sphere;
+uniform vec4 cube;
+uniform vec4 mirror;
+uniform vec4 customModel;
+uniform vec4 lightPos;
+uniform mat4 lightProjection;
+
+uniform float fBias;
+uniform float fScale;
+uniform float fPower;
+
+uniform bool isIrridescent;
+
+uniform float gScattering;
+uniform float scatteringAmount;
+
+
+struct box {
+	vec3 min;
+	vec3 max;
+};
+
+struct triangle {
+  vec4 v1;
+  vec4 v2;
+  vec4 v3;
+  vec4 n1;
+  vec4 n2;
+  vec4 n3;
+};
+
+#define NUM_BOXES 3
+const box boxes[NUM_BOXES] = {
+  /* The ground */
+  {vec3(-50.0, -2.5-0.1, -50.0), vec3(50.0, -2.5, 50.0)},
+  {vec3(-1, 20.0, 20-1), vec3(1, 22.0, 20+1)},
+  {vec3(0), vec3(0)}
+};
+
+uniform int sphereTriangleSize;
+layout(std430, binding = 1) buffer SphereTriangles {
+	triangle sphereTris[];
+};
+
+#define MAX_SCENE_BOUNDS 10000.0
+
+
+struct hitinfo {
+	vec2 uv;
+	float t;
+	vec3 n;
+	vec3 p;
+
+	int type;
+	int refl;
+	int reflOrder;
+	int refrType;
+	int startType;
+	vec3 startN;
+	vec3 viewDir;
+	vec3 vertexE;
+	vec3 vertexP;
+	vec4 e;
+	vec4 color;
+	vec4 lighting;
+};
+
+struct RayHit
+{
+    vec3 position;
+    float distance;
+    vec3 normal;
+};
+
+const float PI = 3.14159265359;
+const float infinity = 1./0.;
+
+int iPixel;
+int numberPerPixel;
+
+float ambientOcclusion;
+
+RayHit CreateRayHit(){
+	RayHit hit;
+    hit.position = vec3(0.0f, 0.0f, 0.0f);
+    hit.distance = infinity;
+    hit.normal = vec3(0.0f, 0.0f, 0.0f);
+    return hit;
+}
+
+//effects
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+const 	vec3	ofreq	=	vec3(1.0, 1.0, 1.0),		// Frequency of iridescent orientantion part.
+				nfreq	=	vec3(1.0, 1.0, 1.0),		// Frequency of iridescent noise part.
+				ooset	=	vec3(0.0, 0.0, 0.0),		// Offset of iridescent orientantion part.
+				noset	=	vec3(0.0, 0.0, 0.0);		// Offset of iridescent noise part.
+const 	float	nmult	=	1.0,						// Controls the intensity of noise.
+				gamma	=	0.75,						// Gamma correction applied to incidence value (fr).
+				minvl	=	0.1;						// Incident distribution curve control, applied after gamma correction.
+
+float setRange(float value, float oMin, float oMax, float iMin, float iMax){
+	return iMin + ((value - oMin)/(oMax - oMin))*(iMax - iMin);
+}
+
+float NaiveNoise(vec3 freq, vec3 offset, vec3 P){
+	// Naive noise function to make irregularity
+	return	sin(2.0*PI*P.x*freq.x*2.0 + 12.0 + offset.x) + cos(2.0*PI*P.z*freq.x + 21.0 + offset.x)*
+			sin(2.0*PI*P.y*freq.y*2.0 + 23.0 + offset.y) + cos(2.0*PI*P.y*freq.y + 32.0 + offset.y)*
+			sin(2.0*PI*P.z*freq.z*2.0 + 34.0 + offset.z) + cos(2.0*PI*P.x*freq.z + 43.0 + offset.z);
+}
+
+vec3 iridescence(	float orient, float noiseMult,
+					vec3 freqA, vec3 offsetA, vec3 freqB, vec3 offsetB, vec3 P){
+	// This function returns a iridescence value based on orientation
+	vec3 irid;
+	irid.x = abs(cos(2.0*PI*orient*freqA.x + NaiveNoise(freqB, offsetB, P)*noiseMult + 1.0 + offsetA.x));
+	irid.y = abs(cos(2.0*PI*orient*freqA.y + NaiveNoise(freqB, offsetB, P)*noiseMult + 2.0 + offsetA.y));
+	irid.z = abs(cos(2.0*PI*orient*freqA.z + NaiveNoise(freqB, offsetB, P)*noiseMult + 3.0 + offsetA.z));
+	return irid;
+}
+
+const float DitherMatrix[16] = { 0.0f,0.5f,0.125f,0.625f, 0.75f,0.22f,0.875f,0.375f, 0.1875f, 0.6875f, 0.0625f, 0.5625f, 0.9375f, 0.4375f, 0.8125f, 0.3125f };
+
+
+float near = 0.1; 
+float far  = 1000.0; 
+  
+float LinearizeDepth(float depth) 
+{
+    float z = depth * 2.0 - 1.0; // back to NDC 
+    //return (2.0 * near * far) / (far + near - z * (far - near));	
+
+	float linDepth = (2.0 * near) / (far + near - depth * (far - near));
+	return linDepth;
+	
+}
+
+//noise
+
+float hash(float n) { return fract(sin(n) * 1e4); }
+float hash(vec2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
+
+float noise(float x) {
+	float i = floor(x);
+	float f = fract(x);
+	float u = f * f * (3.0 - 2.0 * f);
+	return mix(hash(i), hash(i + 1.0), u);
+}
+
+float noise(vec2 x) {
+	vec2 i = floor(x);
+	vec2 f = fract(x);
+
+	// Four corners in 2D of a tile
+	float a = hash(i);
+	float b = hash(i + vec2(1.0, 0.0));
+	float c = hash(i + vec2(0.0, 1.0));
+	float d = hash(i + vec2(1.0, 1.0));
+
+	// Simple 2D lerp using smoothstep envelope between the values.
+	// return vec3(mix(mix(a, b, smoothstep(0.0, 1.0, f.x)),
+	//			mix(c, d, smoothstep(0.0, 1.0, f.x)),
+	//			smoothstep(0.0, 1.0, f.y)));
+
+	// Same code, with the clamps in smoothstep and common subexpressions
+	// optimized away.
+	vec2 u = f * f * (3.0 - 2.0 * f);
+	return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+}
+
+
+//uv coordinates - Texture processing
+vec2 uvSphere(vec3 p){
+
+	float u = 0.5 + atan(p.z,p.x)/(2*PI);
+	float v = 0.5 - asin(p.y)/PI;
+
+	return vec2(u,v);
+}
+
+vec2 uvCube(vec3 p) {
+
+	float absX = abs(p.x);
+	float absY = abs(p.y);
+	float absZ = abs(p.z);
+
+	bool isXPositive = p.x > 0 ? true : false;
+	bool isYPositive = p.y > 0 ? true : false;
+	bool isZPositive = p.z > 0 ? true : false;
+
+	float maxAxis, uc, vc;
+
+	if (isXPositive && absX >= absY && absX >= absZ) {
+		maxAxis = absX;
+		uc = -p.z;
+		vc = p.y;
+	}
+	if (!isXPositive && absX >= absY && absX >= absZ) {
+		maxAxis = absX;
+		uc = p.z;
+		vc = p.y;
+	}
+	if (isYPositive && absY >= absX && absY >= absZ) {
+		maxAxis = absY;
+		uc = p.x;
+		vc = -p.z;
+	}
+	if (!isYPositive && absY >= absX && absY >= absZ) {
+		maxAxis = absY;
+		uc = p.x;
+		vc = p.z;
+	}
+	if (isZPositive && absZ >= absX && absZ >= absY) {
+		maxAxis = absZ;
+		uc = p.x;
+		vc = p.y;
+	}
+	if (!isZPositive && absZ >= absX && absZ >= absY) {
+		maxAxis = absZ;
+		uc = -p.x;
+		vc = p.y;
+	}
+	float u = 0.5 * (uc / maxAxis + 1.0);
+	float v = 0.5 * (vc / maxAxis + 1.0);
+	return vec2(u, v);
+}
+
+vec2 uvPlane(vec3 p, vec3 n){
+
+	vec3 u = normalize(vec3(n.y, -n.x, 0));
+	vec3 v = cross(n,u);
+
+	float u_coord = dot(u, p);
+	float v_coord = dot(v, p);
+
+	return vec2(u_coord,v_coord);
+
+}
+
+
+float intersectTriangle(vec3 origin, vec3 ray, vec3 v0, vec3 v1, vec3 v2) {
+	vec3 edge1 = v1 - v0;
+	vec3 edge2 = v2 - v0;
+	vec3 pvec = cross(ray, edge2);
+	float det = dot(edge1, pvec);
+	if (det <= 0)
+		return -1.0;
+	vec3 tvec = origin - v0;
+	float u = dot(tvec, pvec);
+	if (u < 0.0 || u > det)
+		return -1.0;
+	vec3 qvec = cross(tvec, edge1);
+	float v = dot(ray, qvec);
+	if (v < 0.0 || u + v > det)
+		return -1.0;
+	float invDet = 1.0 / det;
+	float t = dot(edge2, qvec) * invDet;
+	return t;
+}
+
+bool intersectTriangles(vec3 origin, vec3 dir, inout hitinfo info) {
+	bool found = false;
+	hitinfo tinfo;
+
+	vec3 offset = vec3(0,-2.5,-30);
+	uint numTris = sphereTris.length();
+	for (int i = 0; i < numTris; i++) {
+		
+		const triangle tri = sphereTris[i];
+		
+		float t = intersectTriangle(origin, dir, tri.v1.xyz+customModel.xyz+offset, tri.v2.xyz+customModel.xyz+offset, tri.v3.xyz+customModel.xyz+offset);
+		if (t >= 0.0 && t < info.t) {
+			info.t = t;
+			info.n = normalize(tri.n1.xyz);
+			found = true;
+			
+		}
+	}
+	
+
+	return found;
+}
+
+bool IntersectSphere(vec3 origin, vec3 dir, inout hitinfo info){
+
+	bool found = false;
+	vec3 offset = vec3(0,-2.5,-30);
+    // Calculate distance along the ray where the sphere is intersected
+    vec3 d = origin - sphere.xyz-offset;
+    float b = dot(dir, d);
+    float c = dot(d, d) - sphere.w * sphere.w;
+   
+	float t = 0;
+	t = b*b-c;
+    if (t >= 0.0)
+    {
+		t = -b-sqrt(t);
+        found = (t >= 0.0) && (t < info.t);
+		info.t = t;
+    }
+
+	return found;
+}
+
+vec2 intersectBox(vec3 origin, vec3 dir, const box b) {
+	vec3 tMin = (b.min - origin) / dir;
+	vec3 tMax = (b.max - origin) / dir;
+	vec3 t1 = min(tMin, tMax);
+	vec3 t2 = max(tMin, tMax);
+	float tNear = max(max(t1.x, t1.y), t1.z);
+	float tFar = min(min(t2.x, t2.y), t2.z);
+	return vec2(tNear, tFar);
+}
+
+bool intersectBoxes(inout vec3 origin, inout vec3 dir, inout hitinfo info) {
+	float smallest = MAX_SCENE_BOUNDS;//info.t;
+	bool found = false;
+	for (int i = 0; i < NUM_BOXES; i++) {
+
+		box pos = boxes[i];
+		
+		if(i==1){
+			vec3 offset = cube.xyz+vec3(0,-2.5,-30);
+			pos.min = offset-cube.w*0.5;
+			pos.max = offset+cube.w*0.5;
+		}
+		if(i==2){
+			vec3 offset = mirror.xyz+vec3(0,-2.5,-30);
+			pos.min.x = offset.x;
+			pos.min.yz = offset.yz-mirror.w*0.5;
+			pos.max.yz = offset.yz+mirror.w*0.5;
+			pos.max.x = pos.min.x+0.1;
+		}
+		vec2 lambda = intersectBox(origin, dir, pos);
+		if (lambda.x > 0.0 && lambda.x < lambda.y && lambda.x < smallest) {
+			info.t = lambda.x;
+			smallest = lambda.x;
+			found = true;
+			info.type = 0;
+			if(i==1)info.type = 1;
+			if(i==2)info.type = 4;
+			
+		
+		}
+		//break;
+		
+	}
+	return found;
+}
+
+vec4 trace(inout vec3 origin, inout vec3 dir, out bool hitAnything, inout hitinfo i) {
+	
+	vec4 colorRes = vec4(0);
+	hitAnything = false;
+	//i.t = MAX_SCENE_BOUNDS;
+	i.type = -1;
+	if (intersectBoxes(origin,dir, i)) {
+		hitAnything = true;
+		vec3 po = origin+dir*i.t;
+		vec2 boxUV = vec2(0);
+		i.p = po;
+			
+
+		if(i.type==1){
+			i.n = normalize(po-cube.xyz-vec3(0,-2.5,-30));
+			boxUV = uvCube(i.n);
+			
+		}
+		else if(i.type==4){
+			boxUV = uvPlane(po, vec3(0,1,0))*0.1;
+			i.n = vec3(-1,0,0);
+			if(origin.x>po.x)i.n *= -1;
+		}
+		else{
+			boxUV = uvPlane(po, vec3(0,1,0))*0.1;
+			i.n = vec3(0,1,0);
+			if(origin.y<po.y)i.n *= -1;
+			i.type = 0;
+			
+		}
+		
+		
+		colorRes = texture(diffuseTexture,boxUV);
+		
+	}
+
+	if(intersectTriangles(origin,dir,i)){
+		hitAnything = true;
+
+		vec3 po = origin+dir*i.t;
+		i.p = po;
+		i.type = 5;
+		colorRes = vec4(0,0,1,1);
+	}
+	
+	if(IntersectSphere(origin,dir,i)){
+		hitAnything = true;
+
+		vec3 po = origin+dir*i.t;
+		i.p = po;
+		i.type = 2;
+		i.n = normalize(po-sphere.xyz-vec3(0,-2.5,-30));
+		vec2 uvsphr = uvSphere(i.n)*10;
+		//colorRes = texture(diffuseTexture,uvsphr);
+		
+	}
+
+	
+
+	i.color = colorRes;
+
+
+	return colorRes;
+  
+}
+
+vec4 BlinnPhong(vec3 origin, vec3 dir, vec3 normal, vec3 fragPos, vec3 lightColor)
+{
+    // diffuse
+    vec3 lightDir = normalize(lightPos.xyz - fragPos);
+    float diff = max(dot(lightDir, normal), 0.0);
+    vec3 diffuse = diff * lightColor;
+    // specular
+    vec3 viewDir = dir;//normalize(origin - fragPos);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = 0.0;
+    vec3 halfwayDir = normalize(lightDir + viewDir);  
+    //spec = pow(max(dot(normal, reflectDir), 0.0), 64.0);
+	spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
+    vec3 specular = spec * lightColor;    
+    // simple attenuation
+    float max_distance = 1.5;
+    float distance = length(lightPos.xyz - fragPos);
+    float attenuation = 1.0 / (distance*distance);
+    
+	attenuation *= 40.2;
+    diffuse *= attenuation;
+    specular *= attenuation;
+    
+    return vec4(diffuse + specular,1);
+}
+
+vec3 swap(inout float etai, inout float etat){
+
+	float t1 = etai;
+	etai = etat;
+	etat = t1;
+
+	return vec3(0);
+}
+
+vec4 shade(inout vec3 origin, inout vec3 dir, in bool hitAnything, inout hitinfo i){
+	vec4 finalColor;
+	if(hitAnything==true){
+		
+		vec4 albedo = vec4(0.8);
+		vec4 specular = vec4(0.1);
+		vec4 transmittance = vec4(0.9);
+		if(i.type!=1 && i.type!=2){
+			origin = i.p;// + i.n * 0.01;
+		
+			dir = reflect(dir, i.n);
+
+			origin = origin + dir*0.01;
+			i.e *= specular;
+		}
+
+		if(i.type==2){
+			if(i.refl==1){
+				origin = i.p;//-i.n*0.01;
+				if(i.reflOrder==1){
+				
+					if(i.refrType==0)dir = refract(dir, i.n, 1./1.120);
+					if(i.refrType==1)dir = refract(dir, i.n, 1./1.125);
+					if(i.refrType==2)dir = refract(dir, i.n, 1./1.130);
+					
+					origin = origin + dir*0.01;
+				}
+				else {
+					//origin = i.p+i.n*0.01;
+					//dir = refract(dir, i.n, 1.555);
+				}
+
+				i.e *= transmittance;
+			}
+			else{
+				origin = i.p+i.n*0.01;
+				dir = reflect(dir, i.n);
+				i.e *= specular;
+			}
+		}
+
+		return vec4(1);
+	}
+	else{
+
+		i.type = 3;
+		i.e = vec4(1);
+		finalColor = texture(skybox, dir);
+	}
+
+	return finalColor;
+}
+
+vec4 castRay(vec3 origin, vec3 direction, inout hitinfo info, inout bool shadowTraced, inout vec4 shadowRes, in float ambOcclusion){
+	bool hitAnything = false;
+	bool lightTraced = false;
+	vec4 pColor = vec4(0);
+	vec3 lightColor = vec3(0.7);
+	float shadowsVar = 0;
+	vec4 rayEnergy = vec4(1);
+	info.e = rayEnergy;
+	vec4 accLighting = vec4(0);
+	vec3 oEye = origin;
+	vec4 finalColor = vec4(1);
+	
+	for(int i=0;i<8;i++){
+		info.t = MAX_SCENE_BOUNDS;
+		
+		vec4 color = trace(origin, direction, hitAnything, info);
+		info.color += color;
+
+		if(i==0){
+			
+			if(hitAnything)info.startType = info.type;
+			else info.startType = 3;
+
+
+			if(info.type == 2 && hitAnything){
+				info.startN = info.n;
+				info.viewDir = origin - info.p;
+				info.reflOrder = 1;
+				
+				info.vertexP = info.p;
+				info.vertexE = normalize(-info.p);
+			}
+			
+		}
+		else{
+			
+			if(info.type == 2 && hitAnything){
+				//info.reflOrder *= -1;
+				//info.startN *= -1;
+
+				info.reflOrder = 1;
+			}
+		}
+		
+		
+		if(info.type == 0){
+			hitinfo shadowInfo = info;
+			bool hasShadows = false;
+			vec3 shadowPos = info.p+info.n*0.001;
+			vec3 shadowDir = normalize(lightPos.xyz-shadowPos);
+			vec4 shadowColor = trace(shadowPos, shadowDir, hasShadows, shadowInfo);
+
+			if(hasShadows && hitAnything){
+				shadowTraced = true;
+				shadowRes = vec4(0);//mix(shadowRes, pColor , 0.5);
+				//break;
+				shadowsVar = 1;
+			}
+		}
+
+		if(hitAnything){
+		
+			hitinfo lightInfo = info;
+			bool hasLight = false;
+			vec3 objPos = info.p;
+			vec3 lightDir = normalize(lightPos.xyz-objPos);
+			objPos = objPos + lightDir*0.01;
+
+			vec4 lightColor_ = trace(objPos, lightDir, hasLight, lightInfo);
+
+			if(hasLight==false){
+				vec4 ambient = vec4(lightColor*ambOcclusion, 1);
+				vec4 blinnPhongLighting = BlinnPhong(objPos, lightDir, info.n.xyz,info.p.xyz,lightColor);
+				vec4 lighting = (ambient+(1-shadowsVar)*blinnPhongLighting)*vec4(lightColor, 1);
+				info.lighting = lighting;
+				accLighting += lighting;
+				lightTraced = true;
+			}
+		}
+	
+		finalColor = shade(origin,direction, hitAnything,info);
+		
+		if(info.type!=1){
+			
+			info.color += info.e*finalColor;
+			pColor = finalColor;
+		}
+
+		
+
+
+		if(info.e.x == 0 || info.e.y == 0 || info.e.z == 0)break;
+
+		
+	}
+
+	//if(lightTraced)return info.color*accLighting;
+
+	return info.color;
+}
+
+#define GScattering 0
+#define ScatteringAmount 1
+
+float ComputeScattering(float lightDotView)
+{
+	float scattering = 1.0f - (GScattering * GScattering);
+	scattering /= (4.0 * PI * pow(abs(1.0f + (GScattering * GScattering) - (2.0f * GScattering * lightDotView)), 1.5f));
+	return scattering * ScatteringAmount;
+}
+
+
+#define NUM_SAMPLES 10
+
+float ditherValue;
+
+float GetDitherValue(ivec2 pix)
+{
+	int x = int(pix.x % 4);
+	int y = int(pix.y % 4);
+	return DitherMatrix[x + (y * 4)];
+}
+
+
+
+vec4 volumetricLighting(vec3 origin, vec3 direction){
+
+	vec3 lightDirection = vec3(0,-1,0);
+
+	float rayLength = 1000;
+	float stepLength = rayLength/NUM_SAMPLES;
+	vec3 Step = direction*stepLength;
+
+	vec3 currentPosition = origin;
+	vec3 accumulateScattering = vec3(0);
+	vec3 lightColor = vec3(0.7);
+
+	for(int i=0;i<NUM_SAMPLES;i++){
+	
+		//lightDirection = -normalize(lightPos.xyz-currentPosition);
+
+		vec4 LightProjection = vec4(currentPosition, 1)*lightProjection;
+		LightProjection.y = -LightProjection.y;
+		LightProjection.xyz /= LightProjection.w;
+
+		vec2 shadowCoordinates = LightProjection.xy* 0.5f + 0.5f;
+
+		vec3 coords = currentPosition-lightPos.xyz;
+		float ShadowValue = texture(shadowMap,shadowCoordinates).r;//length(coords);//texture(shadowMap, coords).r;
+
+		if (ShadowValue > LightProjection.z)
+		{
+			accumulateScattering += ComputeScattering(dot(lightDirection, direction)) * lightColor;
+		}
+
+		currentPosition += Step *ditherValue;
+
+	}
+
+	accumulateScattering /= NUM_SAMPLES;
+
+	return vec4(accumulateScattering, 1);
+}
+
+layout (local_size_x = 32, local_size_y = 32) in;
+
+//type: 0: plane,1: cube, 2: sphere, 3: sky, 4: mirror, 5: triangles
+
+void main(void) {
+	ivec2 pix = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 size = imageSize(framebuffer);
+	if (pix.x >= size.x || pix.y >= size.y) {
+		return;
+	}
+	vec2 pos = vec2(pix) / vec2(size.x - 1, size.y - 1);
+	vec2 pixel = vec2(pix);
+	vec3 dir = normalize(mix(mix(ray00, ray01, pos.y), mix(ray10, ray11, pos.y), pos.x));
+
+	ambientOcclusion = texture(ssao, pixel).x;
+	
+	ditherValue = GetDitherValue(pix);
+
+	bool hitAnything;
+	hitinfo info;
+	
+	
+	vec4 result = vec4(0);
+	vec4 rayEnergy = vec4(1);
+	info.e = rayEnergy;
+	
+
+	vec3 origin = eye;
+	vec3 direction = dir;
+	vec4 finalColor = vec4(1);
+	vec4 shadowRes = vec4(0);
+	bool shadowTraced = false;
+	vec4 pColor = vec4(0);
+	vec3 lightColor = vec3(0.7);
+	float shadowsVar = 0;
+	vec4 blinnPhongLighting;
+	vec4 accLighting = vec4(0);
+
+	vec4 volumeColor = volumetricLighting(origin, direction);
+
+	bool lightTraced = false;
+	vec3 oEye = eye;
+	//reflection
+	info.refl = 0;
+	info.startType = -1;
+	finalColor = castRay(origin, direction, info, shadowTraced, shadowRes, ambientOcclusion);
+
+	hitinfo info2;
+	info2.e = rayEnergy;
+	info2.refl = 1;
+	shadowRes = vec4(0);
+	shadowTraced = false;
+	vec4 refractionColor = vec4(1);
+	info2.refrType = 0;
+	vec4 refractionColorR = castRay(origin, direction, info2, shadowTraced, shadowRes, ambientOcclusion);
+
+	hitinfo info3;
+	info3.e = rayEnergy;
+	info3.refl = 1;
+	shadowRes = vec4(0);
+	shadowTraced = false;
+
+	info3.refrType = 1;
+	vec4 refractionColorG = castRay(origin, direction, info3, shadowTraced, shadowRes, ambientOcclusion);
+
+	hitinfo info4;
+	info4.e = rayEnergy;
+	info4.refl = 1;
+	shadowRes = vec4(0);
+	shadowTraced = false;
+
+	info4.refrType = 2;
+	vec4 refractionColorB = castRay(origin, direction, info4, shadowTraced, shadowRes, ambientOcclusion);
+
+	refractionColor.r = refractionColorR.r;
+	refractionColor.g = refractionColorG.g;
+	refractionColor.b = refractionColorB.b;
+
+	//Fresnel mix equation (glass like material)
+	//float r = fBias + fScale * pow(1.0 + dot(normalize(info2.viewDir), info2.startN), fPower);
+	
+	finalColor = mix(finalColor, refractionColor, 0.9);
+
+	
+
+	if(shadowTraced)finalColor = mix(shadowRes, finalColor, 0.5);
+	//if(lightTraced)finalColor *= accLighting;//mix(pow(accLighting, vec4(1./2.2)), finalColor, 0.5);
+
+	finalColor = mix(volumeColor, finalColor, 0.5);
+
+	//finalColor = vec4(vec3(texture(shadowMap,pos).r),1);//vec4(vec3(LinearizeDepth(texture(shadowMap, pos).z)/far),1);
+
+	imageStore(framebuffer, pix, finalColor);
+}
