@@ -1,0 +1,63 @@
+
+OpenGL setup
+https://www.youtube.com/watch?v=OR4fNpBjmq8
+
+https://www.hindawi.com/journals/mpe/2012/635631/
+
+
+OpenCL code:
+
+https://github.com/yuwang01/physicalfusion
+
+
+
+metaballs 3d surface
+http://wiki.unity3d.com/index.php?title=MetaBalls
+
+metaballs reference
+http://jamie-wong.com/2014/08/19/metaballs-and-marching-squares/
+
+
+implicit surfaces - functions
+http://paulbourke.net/geometry/implicitsurf/
+
+marching cubes reference
+https://github.com/nsf/mc/blob/master/MC.cpp#L48-L59
+
+MC improved gradients
+http://www.angelfire.com/linux/myp/MCAdvanced/MCImproved.html
+
+Direct Derivative of Metaballs
+http://blackpawn.com/texts/metanormals/default.html
+
+Dynamic Environment Mapping
+https://github.com/DarrenSweeney/OpenGL-Tech-Demo/blob/master/OpenGL_Tech_Demos/CubeMapDemo.cpp
+
+Order Independent Transparency
+https://github.com/gnayuy/wboit
+
+Smooth normals
+https://stackoverflow.com/questions/45477806/general-method-for-calculating-smooth-vertex-normals-with-100-smoothness
+
+Taubin Smooth Matlab
+https://www.mathworks.com/matlabcentral/fileexchange/59863-taubin-smooth
+
+OpenGL Screen Space Reflections Tutorial
+https://www.youtube.com/watch?v=K2rs7K4y_sY
+http://imanolfotia.com/blog/update/2017/03/11/ScreenSpaceReflections.html
+
+This looks really good. Can I ask what:
+uniform sampler2D gFinalImage;
+uniform sampler2D gExtraComponents;
+uniform sampler2D ColorBuffer; 
+Are? From what I understand ColorBuffer seems like the specular gBuffer, gExtraComponent is the metallic component and gFinalImage is the last frame?
+Yes
+
+Raytracing Demos - Compute Shader
+https://github.com/LWJGL/lwjgl3-demos/tree/master/res/org/lwjgl/demo/opengl/raytracing
+
+SSBO to ComputeShader
+https://stackoverflow.com/questions/50516439/sending-uvec4-array-in-ssbo
+
+Raytracing reflection/refraction/fresnel 
+https://blog.demofox.org/2017/01/09/raytracing-reflection-refraction-fresnel-total-internal-reflection-and-beers-law/
